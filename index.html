@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warframe Syndicate Standing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #f5a623;
+            text-shadow: 0 0 10px rgba(245, 166, 35, 0.5);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .calculator-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .calculator-table th {
+            background: linear-gradient(180deg, #2a2a4a 0%, #1a1a3a 100%);
+            color: #f5a623;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #f5a623;
+        }
+
+        .calculator-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .calculator-table tr:hover {
+            background: rgba(245, 166, 35, 0.1);
+        }
+
+        .faction-name {
+            font-weight: 600;
+            color: #fff;
+            text-align: left;
+            padding-left: 20px !important;
+        }
+
+        .input-field {
+            width: 120px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1rem;
+            text-align: right;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #f5a623;
+            box-shadow: 0 0 8px rgba(245, 166, 35, 0.4);
+        }
+
+        .input-field::placeholder {
+            color: #666;
+        }
+
+        .calculated {
+            font-weight: 600;
+            font-size: 1.1rem;
+            min-width: 100px;
+            display: inline-block;
+        }
+
+        .positive {
+            color: #4caf50;
+        }
+
+        .negative {
+            color: #f44336;
+        }
+
+        .safe {
+            color: #e0e0e0;
+        }
+
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .critical {
+            color: #f44336;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .info-section {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #f5a623;
+        }
+
+        .info-section h2 {
+            color: #f5a623;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-red { background: #f44336; }
+        .legend-yellow { background: #ffc107; }
+        .legend-green { background: #4caf50; }
+
+        .relationships-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .relationship-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #f5a623;
+        }
+
+        .relationship-card h3 {
+            color: #f5a623;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .relationship-card ul {
+            list-style: none;
+            font-size: 0.9rem;
+        }
+
+        .relationship-card li {
+            padding: 3px 0;
+        }
+
+        .ally { color: #4caf50; }
+        .opposed { color: #ff9800; }
+        .enemy { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Warframe Syndicate Standing Calculator</h1>
+            <p class="subtitle">Track and plan your standing across all 6 syndicates with real-time calculations</p>
+        </header>
+
+        <table class="calculator-table">
+            <thead>
+                <tr>
+                    <th>Syndicate</th>
+                    <th>Current Standing<br><small>(Input)</small></th>
+                    <th>Planned Grind<br><small>(Input)</small></th>
+                    <th>Net Change<br><small>(Calculated)</small></th>
+                    <th>Final Total<br><small>(Calculated)</small></th>
+                </tr>
+            </thead>
+            <tbody id="syndicateTable">
+                <!-- Rows will be generated by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-red"></div>
+                <span>Critical: Below 0 (De-Ranked)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-yellow"></div>
+                <span>Warning: Above 132,000 (Cap)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-green"></div>
+                <span>Safe: 0 - 132,000</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>How to Use This Calculator</h2>
+            <p><strong>Current Standing:</strong> Enter your current reputation balance for each syndicate.</p>
+            <p><strong>Planned Grind:</strong> Enter how much standing you plan to farm. The calculator will automatically show the effects on ALL syndicates based on their relationships.</p>
+            <p><strong>The Balancing Act:</strong> If a syndicate drops too low, plan to grind that syndicate to build a buffer before grinding others.</p>
+        </div>
+
+        <div class="info-section">
+            <h2>Syndicate Relationships</h2>
+            <div class="relationships-grid">
+                <div class="relationship-card">
+                    <h3>Steel Meridian</h3>
+                    <ul>
+                        <li class="ally">+ Red Veil (+50%)</li>
+                        <li class="opposed">- New Loka (-50%)</li>
+                        <li class="enemy">- Perrin Sequence (-100%)</li>
+                    </ul>
+                </div>
+                <div class="relationship-card">
+                    <h3>Arbiters of Hexis</h3>
+                    <ul>
+                        <li class="ally">+ Cephalon Suda (+50%)</li>
+                        <li class="opposed">- Perrin Sequence (-50%)</li>
+                        <li class="enemy">- Red Veil (-100%)</li>
+                    </ul>
+                </div>
+                <div class="relationship-card">
+                    <h3>Cephalon Suda</h3>
+                    <ul>
+                        <li class="ally">+ Arbiters of Hexis (+50%)</li>
+                        <li class="opposed">- Red Veil (-50%)</li>
+                        <li class="enemy">- New Loka (-100%)</li>
+                    </ul>
+                </div>
+                <div class="relationship-card">
+                    <h3>Perrin Sequence</h3>
+                    <ul>
+                        <li class="ally">+ New Loka (+50%)</li>
+                        <li class="opposed">- Arbiters of Hexis (-50%)</li>
+                        <li class="enemy">- Steel Meridian (-100%)</li>
+                    </ul>
+                </div>
+                <div class="relationship-card">
+                    <h3>Red Veil</h3>
+                    <ul>
+                        <li class="ally">+ Steel Meridian (+50%)</li>
+                        <li class="opposed">- Cephalon Suda (-50%)</li>
+                        <li class="enemy">- Arbiters of Hexis (-100%)</li>
+                    </ul>
+                </div>
+                <div class="relationship-card">
+                    <h3>New Loka</h3>
+                    <ul>
+                        <li class="ally">+ Perrin Sequence (+50%)</li>
+                        <li class="opposed">- Steel Meridian (-50%)</li>
+                        <li class="enemy">- Cephalon Suda (-100%)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Syndicate data and relationship matrix
+        const syndicates = [
+            'Steel Meridian',
+            'Arbiters of Hexis',
+            'Cephalon Suda',
+            'Perrin Sequence',
+            'Red Veil',
+            'New Loka'
+        ];
+
+        // Relationship matrix: relationshipMatrix[source][target] = effect multiplier
+        // Index mapping: 0=Steel Meridian, 1=Arbiters, 2=Suda, 3=Perrin, 4=Red Veil, 5=New Loka
+        const relationshipMatrix = {
+            0: { 0: 1.0, 4: 0.5, 5: -0.5, 3: -1.0 },  // Steel Meridian affects: self, Red Veil +0.5, New Loka -0.5, Perrin -1.0
+            1: { 1: 1.0, 2: 0.5, 3: -0.5, 4: -1.0 },  // Arbiters affects: self, Suda +0.5, Perrin -0.5, Red Veil -1.0
+            2: { 2: 1.0, 1: 0.5, 4: -0.5, 5: -1.0 },  // Suda affects: self, Arbiters +0.5, Red Veil -0.5, New Loka -1.0
+            3: { 3: 1.0, 5: 0.5, 1: -0.5, 0: -1.0 },  // Perrin affects: self, New Loka +0.5, Arbiters -0.5, Steel Meridian -1.0
+            4: { 4: 1.0, 0: 0.5, 2: -0.5, 1: -1.0 },  // Red Veil affects: self, Steel Meridian +0.5, Suda -0.5, Arbiters -1.0
+            5: { 5: 1.0, 3: 0.5, 0: -0.5, 2: -1.0 }   // New Loka affects: self, Perrin +0.5, Steel Meridian -0.5, Suda -1.0
+        };
+
+        const STANDING_CAP = 132000;
+        const SYNDICATE_COUNT = syndicates.length;
+
+        // Initialize the table
+        function initializeTable() {
+            const tableBody = document.getElementById('syndicateTable');
+            
+            syndicates.forEach((syndicate, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="faction-name">${syndicate}</td>
+                    <td>
+                        <input type="number" 
+                               class="input-field current-standing" 
+                               data-index="${index}" 
+                               placeholder="0"
+                               value="0">
+                    </td>
+                    <td>
+                        <input type="number" 
+                               class="input-field planned-grind" 
+                               data-index="${index}" 
+                               placeholder="0"
+                               value="0">
+                    </td>
+                    <td>
+                        <span class="calculated net-change" data-index="${index}">0</span>
+                    </td>
+                    <td>
+                        <span class="calculated final-total" data-index="${index}">0</span>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Add event listeners to all inputs
+            document.querySelectorAll('.input-field').forEach(input => {
+                input.addEventListener('input', calculateAll);
+            });
+        }
+
+        // Calculate net changes and final totals
+        function calculateAll() {
+            // Get all planned grind values
+            const plannedGrinds = [];
+            document.querySelectorAll('.planned-grind').forEach(input => {
+                plannedGrinds.push(parseFloat(input.value) || 0);
+            });
+
+            // Get all current standing values
+            const currentStandings = [];
+            document.querySelectorAll('.current-standing').forEach(input => {
+                currentStandings.push(parseFloat(input.value) || 0);
+            });
+
+            // Calculate net change for each syndicate
+            const netChanges = new Array(SYNDICATE_COUNT).fill(0);
+
+            // For each syndicate that has planned grind
+            for (let source = 0; source < SYNDICATE_COUNT; source++) {
+                const grindAmount = plannedGrinds[source];
+                if (grindAmount !== 0) {
+                    // Apply effects to all affected syndicates
+                    const effects = relationshipMatrix[source];
+                    for (const [targetStr, multiplier] of Object.entries(effects)) {
+                        const target = parseInt(targetStr);
+                        netChanges[target] += grindAmount * multiplier;
+                    }
+                }
+            }
+
+            // Update the display
+            for (let i = 0; i < SYNDICATE_COUNT; i++) {
+                const netChangeEl = document.querySelector(`.net-change[data-index="${i}"]`);
+                const finalTotalEl = document.querySelector(`.final-total[data-index="${i}"]`);
+
+                const netChange = netChanges[i];
+                const finalTotal = currentStandings[i] + netChange;
+
+                // Format and display net change
+                netChangeEl.textContent = formatNumber(netChange);
+                netChangeEl.className = 'calculated net-change';
+                if (netChange > 0) {
+                    netChangeEl.classList.add('positive');
+                } else if (netChange < 0) {
+                    netChangeEl.classList.add('negative');
+                }
+
+                // Format and display final total with conditional formatting
+                finalTotalEl.textContent = formatNumber(finalTotal);
+                finalTotalEl.className = 'calculated final-total';
+                
+                if (finalTotal < 0) {
+                    finalTotalEl.classList.add('critical');
+                } else if (finalTotal > STANDING_CAP) {
+                    finalTotalEl.classList.add('warning');
+                } else {
+                    finalTotalEl.classList.add('safe');
+                }
+            }
+        }
+
+        // Format number with commas
+        function formatNumber(num) {
+            return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeTable);
+    </script>
+</body>
+</html>
